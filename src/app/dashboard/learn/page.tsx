@@ -775,7 +775,7 @@ export async function POST(req: Request) {
   const messages: Anthropic.MessageParam[] = [{ role: 'user', content: message }];
 
   let response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514', max_tokens: 1024, tools, messages,
+    model: 'claude-sonnet-4-6', max_tokens: 1024, tools, messages,
   });
 
   while (response.stop_reason === 'tool_use') {
@@ -784,7 +784,7 @@ export async function POST(req: Request) {
     const result = await handleTool(toolBlock.name, toolBlock.input as Record<string, unknown>);
     messages.push({ role: 'assistant', content: response.content });
     messages.push({ role: 'user', content: [{ type: 'tool_result', tool_use_id: toolBlock.id, content: result }] });
-    response = await anthropic.messages.create({ model: 'claude-sonnet-4-20250514', max_tokens: 1024, tools, messages });
+    response = await anthropic.messages.create({ model: 'claude-sonnet-4-6', max_tokens: 1024, tools, messages });
   }
 
   const textBlock = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
@@ -875,7 +875,7 @@ GROUP BY model ORDER BY requests DESC;`}</pre>
 
 function selectModel(mode: string): string {
   if (mode === 'code') return 'deepseek-chat';
-  if (mode === 'sap') return 'claude-sonnet-4-20250514';
+  if (mode === 'sap') return 'claude-sonnet-4-6';
   return 'llama-3.3-70b-versatile'; // default: rápido y gratis
 }
 
