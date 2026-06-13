@@ -13,7 +13,7 @@ const AGENTS = [
   { id: 'openai', name: 'OpenAI', model: 'gpt-4o-mini', color: '#10b981', role: 'Full-stack dev' },
   { id: 'cohere', name: 'Cohere', model: 'command-a', color: '#1e3a5f', role: 'NLP · RAG · Documentos' },
   { id: 'openrouter', name: 'OpenRouter', model: 'llama-3.3-70b', color: '#6366f1', role: '100+ modelos · Fallback' },
-  { id: 'bedrock', name: 'Bedrock', model: 'claude-3.5-haiku', color: '#f97316', role: 'AWS nativo · Enterprise' },
+  { id: 'bedrock', name: 'Bedrock', model: 'claude-haiku-4-5', color: '#f97316', role: 'AWS nativo · Enterprise' },
   { id: 'gemini', name: 'Gemini', model: 'gemini-2.0-flash', color: '#22c55e', role: 'Multimodal · Google AI' },
 ];
 
@@ -160,7 +160,6 @@ export default function AgentsWorkspace() {
     setPipeline('pushing');
     setPipelineLog([`Pipeline → ${target.label}`, '']);
 
-    // Step 1: Save to Supabase (real)
     const s1 = Date.now();
     setPipelineLog(prev => [...prev, '📤 Guardando mejora en Supabase...']);
     try {
@@ -172,12 +171,10 @@ export default function AgentsWorkspace() {
       setPipelineLog(prev => [...prev, `✅ Insight guardado (${t1}s)`]);
     } catch (err) { setPipelineLog(prev => [...prev, `⚠️ ${String(err)}`]); }
 
-    // Step 2: Commit code files to GitHub (real)
     setPipeline('deploying');
     const s2 = Date.now();
     const codeFiles = detectedFiles;
 
-    // DIFF PREVIEW
     setPipelineLog(prev => [...prev, '', '━━━ DIFF PREVIEW ━━━']);
     if (codeFiles.length > 0) {
       for (const file of codeFiles) {
@@ -213,7 +210,6 @@ export default function AgentsWorkspace() {
         }
       }
 
-      // Also commit improvement doc as reference
       const r = await deployApi({
         action: 'commit_file', repo: target.repo,
         path: `docs/improvements/${date}-${selectedAgent}-${Date.now()}.md`,
@@ -238,17 +234,16 @@ export default function AgentsWorkspace() {
     setCommittedFiles(committed);
     setCommitUrl(lastCommitUrl);
 
-    // Step 3: Wait for Amplify build (real polling)
     const s3 = Date.now();
     setPipelineLog(prev => [...prev, '', '🚀 AWS Amplify build disparado por push a main...']);
     setPipelineLog(prev => [...prev, '⏳ Esperando build de Amplify (polling cada 10s)...']);
 
     let buildDone = false;
     let attempts = 0;
-    const maxAttempts = 6; // 60 seconds max
+    const maxAttempts = 6;
 
     while (!buildDone && attempts < maxAttempts) {
-      await new Promise(r => setTimeout(r, 10000)); // Poll every 10s
+      await new Promise(r => setTimeout(r, 10000));
       attempts++;
       try {
         const status = await amplifyApi({ action: 'build_status' });
@@ -286,7 +281,6 @@ export default function AgentsWorkspace() {
       setPipelineLog(prev => [...prev, `⚠️ Timeout esperando build (${maxAttempts * 10}s)`, '🔄 Build continúa en background — verificar en AWS Amplify Console']);
     }
 
-    // Step 4: Health check (real)
     const s4 = Date.now();
     setPipelineLog(prev => [...prev, '', `🏥 Health check → ${target.url}...`]);
     try {
@@ -302,7 +296,6 @@ export default function AgentsWorkspace() {
       setPipelineLog(prev => [...prev, '⚠️ Health check no disponible']);
     }
 
-    // Done
     const totalTime = ((Date.now() - pipelineStart) / 1000).toFixed(1);
     setStepTimes(prev => ({ ...prev, total: Date.now() - pipelineStart }));
     setPipeline('done');
@@ -327,7 +320,6 @@ export default function AgentsWorkspace() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 34px)', overflow: 'hidden' }}>
-      {/* Header */}
       <div style={{ flexShrink: 0, background: 'rgba(15,22,35,0.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div style={{ height: 48, display: 'flex', alignItems: 'center', padding: '0 1.5rem', fontSize: '0.82rem', color: '#94a3b8' }}>
           <span>Intranet</span><span style={{ margin: '0 8px', color: '#475569' }}>/</span><span style={{ color: '#fff', fontWeight: 600 }}>Agentes IA</span>
@@ -340,9 +332,7 @@ export default function AgentsWorkspace() {
         </div>
       </div>
 
-      {/* Workspace */}
       <div style={{ display: 'flex', flex: '1 1 0', minHeight: 0, overflow: 'hidden' }}>
-        {/* Left: Agents */}
         <div style={{ width: 160, flexShrink: 0, background: '#0a0d14', borderRight: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ padding: '10px 10px 6px' }}>
             <div style={{ fontSize: '0.6rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center' }}>Agentes<InfoTip text="Selecciona un agente IA para ejecutar tareas. Hoku fusiona 9 modelos, los demás usan su modelo específico." /></div>
@@ -371,9 +361,7 @@ export default function AgentsWorkspace() {
           <div style={{ padding: '6px 10px', borderTop: '1px solid rgba(255,255,255,0.04)', fontSize: '0.55rem', color: '#334155' }}>Enter = ejecutar</div>
         </div>
 
-        {/* Center: Editor + Output */}
         <div style={{ flex: '1 1 0', display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, overflow: 'hidden' }}>
-          {/* Topbar */}
           <div style={{ height: 42, minHeight: 42, display: 'flex', alignItems: 'center', gap: 8, padding: '0 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: '#0a0d14', flexShrink: 0 }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: agent.color }}></span>
             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#f1f5f9' }}>{agent.name}</span>
@@ -386,7 +374,7 @@ export default function AgentsWorkspace() {
                   color: mode === m ? '#00e5b0' : '#475569',
                   border: 'none', cursor: 'pointer', fontFamily: "'Inter', system-ui",
                 }}>
-                  {m === 'chat' ? '\u{1F4AC}' : m === 'code' ? '</>' : m === 'sap' ? '\u{1F3E2}' : '\u{1F680}'} {m.toUpperCase()}
+                  {m === 'chat' ? '💬' : m === 'code' ? '</>' : m === 'sap' ? '🏢' : '🚀'} {m.toUpperCase()}
                 </button>
               ))}
               <InfoTip text="Chat: conversación general. Code: genera código commiteable. SAP: consultas SAP FI. Deploy: tareas DevOps y deploy." />
@@ -406,12 +394,10 @@ export default function AgentsWorkspace() {
             )}
           </div>
 
-          {/* Task input */}
           <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
             <textarea value={task} onChange={e => setTask(e.target.value)} onKeyDown={handleKeyDown} placeholder={PLACEHOLDERS[selectedAgent] || 'Escribe tu tarea...'} rows={3} style={{ width: '100%', background: '#111827', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px 12px', color: '#e2e8f0', fontSize: '0.8rem', fontFamily: "'Inter', system-ui", lineHeight: 1.6, resize: 'vertical', outline: 'none', minHeight: 60, maxHeight: 150 }} />
           </div>
 
-          {/* Output */}
           <div ref={outputRef} style={{ flex: '1 1 0', overflow: 'auto', padding: '14px 16px', minHeight: 0 }}>
             {!output && !running ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#1e293b' }}>
@@ -443,7 +429,6 @@ export default function AgentsWorkspace() {
         </div>
       </div>
 
-      {/* Pipeline Popup */}
       {pipeline !== 'idle' && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
           <div style={{ background: '#0f1623', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, width: '100%', maxWidth: 480, boxShadow: '0 25px 60px rgba(0,0,0,0.6)', overflow: 'hidden' }}>
@@ -455,13 +440,11 @@ export default function AgentsWorkspace() {
               {(pipeline === 'done' || pipeline === 'error' || pipeline === 'preview') && <button onClick={() => setPipeline('idle')} style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.06)', border: 'none', color: '#94a3b8', width: 28, height: 28, borderRadius: 6, cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>}
             </div>
             <div style={{ padding: '20px' }}>
-              {/* PREVIEW STEP — Sandbox before deploy */}
               {pipeline === 'preview' && (
                 <>
                   <div style={{ fontSize: '0.72rem', color: '#94a3b8', lineHeight: 1.6, marginBottom: 12 }}>
                     Revisa la demo antes de deployar. {detectedFiles.length > 0 ? `${detectedFiles.length} archivo(s) generado(s).` : 'Solo documentación generada.'}
                   </div>
-                  {/* Sandbox iframe for HTML/TSX preview */}
                   {detectedFiles.some(f => ['html', 'htm', 'tsx', 'jsx', 'css'].includes(f.lang)) ? (
                     <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(139,92,246,0.2)', marginBottom: 14 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', background: 'rgba(139,92,246,0.04)', borderBottom: '1px solid rgba(139,92,246,0.1)' }}>
@@ -492,7 +475,6 @@ export default function AgentsWorkspace() {
                       <pre style={{ fontSize: '0.68rem', color: '#d1d5db', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap', fontFamily: "'JetBrains Mono', monospace" }}>{output.slice(0, 2000)}</pre>
                     </div>
                   )}
-                  {/* Files detected */}
                   {detectedFiles.length > 0 && (
                     <div style={{ background: '#0a0d14', borderRadius: 8, padding: '8px 12px', marginBottom: 14, border: '1px solid rgba(255,255,255,0.04)' }}>
                       <div style={{ fontSize: '0.58rem', color: '#475569', fontWeight: 700, marginBottom: 4 }}>ARCHIVOS ({detectedFiles.length})</div>
@@ -552,7 +534,6 @@ export default function AgentsWorkspace() {
                       { key: 'deploying', label: 'Build', timeKey: 'build' },
                       { key: 'done', label: 'Live', timeKey: 'health' },
                     ].map((step, i) => {
-                      const steps: PipelineStep[] = ['pushing', 'pushing', 'deploying', 'done'];
                       const ci = pipeline === 'pushing' ? (stepTimes.save ? 1 : 0) : pipeline === 'deploying' ? (stepTimes.commit ? 2 : 1) : pipeline === 'done' ? 4 : 0;
                       const isDone = i < ci || pipeline === 'done'; const isActive = i === ci;
                       const timeMs = stepTimes[step.timeKey]; const timeFmt = timeMs ? `${(timeMs / 1000).toFixed(1)}s` : '';
