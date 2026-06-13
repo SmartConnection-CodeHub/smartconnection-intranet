@@ -32,7 +32,7 @@ export const CONFIG = {
     openai: { id: 'openai', name: 'OpenAI', model: 'gpt-4o-mini', color: '#10b981' },
     cohere: { id: 'cohere', name: 'Cohere', model: 'command-a', color: '#1e3a5f' },
     openrouter: { id: 'openrouter', name: 'OpenRouter', model: 'llama-3.3-70b', color: '#6366f1' },
-    bedrock: { id: 'bedrock', name: 'Bedrock', model: 'claude-3.5-haiku', color: '#f97316' },
+    bedrock: { id: 'bedrock', name: 'Bedrock', model: 'claude-haiku-4-5', color: '#f97316' },
     gemini: { id: 'gemini', name: 'Gemini', model: 'gemini-2.0-flash', color: '#22c55e' },
   },
   colors: {
