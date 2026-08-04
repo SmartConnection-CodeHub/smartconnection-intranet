@@ -1,11 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-)
-
 const LEVEL_MAP: Record<string, { pct: number; color: string; label: string; ring: number }> = {
   no_expuesto: { pct: 10, color: '#ef4444', label: 'No expuesto', ring: 36 },
   explorando:  { pct: 30, color: '#f97316', label: 'Explorando', ring: 108 },
@@ -33,6 +28,10 @@ const TYPE_CONFIG: Record<string, { label: string; emoji: string; color: string 
 }
 
 export async function GET() {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
+    return NextResponse.json({ error: 'not configured' }, { status: 503 })
+  }
+  const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY)
   try {
     const { data: allData, error } = await supabase
       .from('cerebro_knowledge')
